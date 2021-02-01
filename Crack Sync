@@ -1,0 +1,1320 @@
+//Discord-Yosn#8782
+UI.AddSubTab(["Config", "SUBTAB_MGR"], "Crack-yaw");
+UI.AddSubTab(["Config", "SUBTAB_MGR"], "Crack-yaw [AA]");
+UI.AddSubTab(["Config", "SUBTAB_MGR"], "Crack-yaw Colors");
+UI.AddSubTab(["Config", "SUBTAB_MGR"], "Crack-yaw Misc");
+UI.AddCheckbox(["Config", "Crack-yaw [AA]", "Crack-yaw [AA]"], "Ideal Yaw");
+UI.AddHotkey(["Config", "Scripts", "JS Keybinds"], "Freestanding", "freestanding");
+UI.AddCheckbox(["Config", "Crack-yaw Colors", "Crack-yaw Colors"], "Spec Gradient");
+UI.AddCheckbox(["Config", "Crack-yaw Colors", "Crack-yaw Colors"], "Hotkeys Gradient");
+UI.AddCheckbox(["Config", "Crack-yaw Colors", "Crack-yaw Colors"], "Watermark Gradient");
+UI.AddCheckbox(["Config", "Crack-yaw", "Crack-yaw"], "Faster DT");
+UI.AddCheckbox(["Config", "Crack-yaw Misc", "Crack-yaw Misc"], "Trashtalk");
+UI.AddCheckbox(["Config", "Crack-yaw Misc", "Crack-yaw Misc"], "clantag");
+UI.AddCheckbox(["Config", "Crack-yaw", "Crack-yaw"], "spectator list");
+UI.AddCheckbox(["Config", "Crack-yaw", "Crack-yaw"], "watermark");
+UI.AddCheckbox(["Config", "Crack-yaw", "Crack-yaw"], "hotkey states");
+UI.AddCheckbox(["Config", "Crack-yaw", "Crack-yaw"], "indicators");
+UI.AddCheckbox(["Config", "Crack-yaw [AA]", "Crack-yaw [AA]"], "Crack-walk");
+UI.AddCheckbox(["Config", "Crack-yaw [AA]", "Crack-yaw [AA]"], "leg fucker");
+UI.AddColorPicker(["Config", "Crack-yaw Colors", "Crack-yaw Colors"], "Spec");
+UI.AddColorPicker(["Config", "Crack-yaw Colors", "Crack-yaw Colors"], "watermark color");
+
+var color1 = UI.GetColor(["Config", "Crack-yaw Colors", "Crack-yaw Colors", "watermark color"]);
+
+
+var color = UI.GetColor(["Config", "Crack-yaw Colors", "Crack-yaw Colors", "watermark color"]);
+if (color[3] == 0) {
+    UI.SetColor(["Config", "Crack-yaw Colors", "Crack-yaw Colors", "watermark color"][96, 255, 193, 0]);
+}
+
+function HSVtoRGB(h, s, v) {
+    var r, g, b, i, f, p, q, t;
+    if (arguments.length === 1) {
+        s = h.s, v = h.v, h = h.h;
+    }
+    i = Math.floor(h * 6);
+    f = h * 6 - i;
+    p = v * (1 - s);
+    q = v * (1 - f * s);
+    t = v * (1 - (1 - f) * s);
+    switch (i % 6) {
+    case 0:
+        r = v, g = t, b = p;
+        break;
+    case 1:
+        r = q, g = v, b = p;
+        break;
+    case 2:
+        r = p, g = v, b = t;
+        break;
+    case 3:
+        r = p, g = q, b = v;
+        break;
+    case 4:
+        r = t, g = p, b = v;
+        break;
+    case 5:
+        r = v, g = p, b = q;
+        break;
+    default:
+        ;
+    }
+    return {
+        r: Math.round(r * 255),
+        g: Math.round(g * 255),
+        b: Math.round(b * 255)
+    };
+}
+
+function in_bounds(vec, x, y, x2, y2) {
+    return vec[0] > x && vec[1] > y && vec[0] < x2 && vec[1] < y2;
+}
+
+function draw_arc(x, y, radius, start_angle, percent, thickness, color) {
+    var precision = 2 * Math.PI / 30;
+    var step = Math.PI / 180;
+    var inner = radius - thickness;
+    var end_angle = (start_angle + percent) * step;
+    var start_angle = start_angle * Math.PI / 180;
+    for (; radius > inner; --radius) {
+        for (var angle = start_angle; angle < end_angle; angle += precision) {
+            var cx = Math.round(x + radius * Math.cos(angle));
+            var cy = Math.round(y + radius * Math.sin(angle));
+            var cx2 = Math.round(x + radius * Math.cos(angle + precision));
+            var cy2 = Math.round(y + radius * Math.sin(angle + precision));
+            Render.Line(cx, cy, cx2, cy2, color);
+        }
+    }
+}
+
+function draw() {
+    if (UI.GetValue(["Config", "Crack-yaw", "Crack-yaw", "watermark"])) {
+        if (!World.GetServerString()) {
+            return;
+        }
+        var today = new Date;
+        var hours1 = today.getHours();
+        var minutes1 = today.getMinutes();
+        var seconds1 = today.getSeconds();
+        var hours = hours1 <= 9 ? "0" + hours1 + ":" : hours1 + ":";
+        var minutes = minutes1 <= 9 ? "0" + minutes1 + ":" : minutes1 + ":";
+        var seconds = seconds1 <= 9 ? "0" + seconds1 : seconds1;
+        var server_tickrate = Globals.Tickrate().toString();
+        var ebanaya_hueta = Math.round(Entity.GetProp(Entity.GetLocalPlayer(), "CPlayerResource", "m_iPing")).toString();
+        color = UI.GetColor(["Config", "Crack-yaw Colors", "Crack-yaw Colors", "watermark color"]);
+        var font = Render.GetFont("Verdana.ttf", 9, true);
+        var wGradient = UI.GetValue(["Config", "Crack-yaw Colors", "Crack-yaw Colors", "Watermark Gradient"]);
+        var rgb = HSVtoRGB(Global.Tickcount() % 350 / 350, 1, 1);
+        var text = "Crack-yaw | " + Cheat.GetUsername() + " | delay: " + ebanaya_hueta + "ms | " + server_tickrate + "tick | " + hours + minutes + seconds;
+        var w = Render.TextSize(text, font)[0] + 8;
+        var x = Global.GetScreenSize()[0];
+        x = x - w - 10;
+        if (wGradient) {
+            Render.GradientRect(x - 2, 12, 2, 18, 0, [rgb.r, rgb.g, rgb.b, 255], [rgb.g, rgb.b, rgb.r, 255]);
+            Render.FilledRect(x - 2, 12, w + 2, 18, [17, 17, 17, color[3]]);
+        } else {
+            Render.FilledRect(x - 2, 10, w + 2, 2, [color[0], color[1], color[2], 255]);
+            Render.FilledRect(x - 2, 12, w + 2, 18, [17, 17, 17, color[3]]);
+        }
+        Render.String(x + 5, 15, 0, text, [0, 0, 0, 180], font);
+        Render.String(x + 4, 14, 0, text, [255, 255, 255, 255], font);
+    }
+}
+Cheat.RegisterCallback("Draw", "draw");
+const x1 = UI.AddSliderInt(["Config", "Crack-yaw Misc", "Crack-yaw Misc"], "Hotkeys x", 0, Global.GetScreenSize()[0]);
+const y1 = UI.AddSliderInt(["Config", "Crack-yaw Misc", "Crack-yaw Misc"], "Hotkeys y", 0, Global.GetScreenSize()[1]);
+UI.AddColorPicker(["Config", "Crack-yaw Colors", "Crack-yaw Colors"], "Hotkeys");
+var colorhotkeys = UI.GetColor(["Config", "Crack-yaw Colors", "Crack-yaw Colors", "Hotkeys"]);
+if (colorhotkeys[3] == 0) {
+    UI.SetColor(["Config", "Crack-yaw Colors", "Crack-yaw Colors", "Hotkeys"], [96, 255, 193, 3]);
+}
+var alpha = 0;
+var salpha = 0;
+var maxwidth = 0;
+var swalpha = 0;
+var fdalpha = 0;
+var apalpha = 0;
+var aialpha = 0;
+var spalpha = 0;
+var fbalpha = 0;
+var dtalpha = 0;
+var hsalpha = 0;
+var doalpha = 0;
+var username = Cheat.GetUsername();
+var textalpha = 0;
+var h = new Array;
+
+function in_bounds(vec, x, y, x2, y2) {
+    return vec[0] > x && vec[1] > y && vec[0] < x2 && vec[1] < y2;
+
+}
+
+function HSVtoRGB(h, s, v) {
+    var r, g, b, i, f, p, q, t;
+    if (arguments.length === 1) {
+        s = h.s, v = h.v, h = h.h;
+    }
+    i = Math.floor(h * 6);
+    f = h * 6 - i;
+    p = v * (1 - s);
+    q = v * (1 - f * s);
+    t = v * (1 - (1 - f) * s);
+    switch (i % 6) {
+    case 0:
+        r = v, g = t, b = p;
+        break;
+    case 1:
+        r = q, g = v, b = p;
+        break;
+    case 2:
+        r = p, g = v, b = t;
+        break;
+    case 3:
+        r = p, g = q, b = v;
+        break;
+    case 4:
+        r = t, g = p, b = v;
+        break;
+    case 5:
+        r = v, g = p, b = q;
+        break;
+    default:
+        ;
+    }
+    return {
+        r: Math.round(r * 255),
+        g: Math.round(g * 255),
+        b: Math.round(b * 255)
+    };
+}
+
+function main_hotkeys() {
+    if (UI.GetValue(["Config", "Crack-yaw", "Crack-yaw", "hotkey states"])) {
+        if (!World.GetServerString()) {
+            return;
+        }
+        const x = UI.GetValue(["Config", "Crack-yaw Misc", "Crack-yaw Misc", "Hotkeys x"]),
+            y = UI.GetValue(["Config", "Crack-yaw Misc", "Crack-yaw Misc", "Hotkeys y"]);
+        colorhotkeys = UI.GetColor(["Config", "Crack-yaw Colors", "Hotkeys"]);
+        var font = Render.GetFont("Verdana.ttf", 9, true);
+        var frames = 8 * Globals.Frametime();
+        var width = 75;
+        var maxwidth = 0;
+        var Gradient = UI.GetValue(["Config", "Crack-yaw Colors", "Crack-yaw Colors", "Hotkeys Gradient"]);
+        var rgb = HSVtoRGB(Global.Tickcount() % 350 / 350, 1, 1);
+        if (UI.GetValue(["Rage", "Anti Aim", "General", "Key assignment", "Slow walk"])) {
+            swalpha = Math.min(swalpha + frames, 1);
+        } else {
+            swalpha = swalpha - frames;
+            if (swalpha < 0) {
+                swalpha = 0;
+            }
+            if (swalpha == 0) {
+                h.splice(h.indexOf("Slow walk"));
+            }
+        }
+        if (UI.GetValue(["Rage", "Anti Aim", "General", "Key assignment", "Fake duck"])) {
+            fdalpha = Math.min(fdalpha + frames, 1);
+        } else {
+            fdalpha = fdalpha - frames;
+            if (fdalpha < 0) {
+                fdalpha = 0;
+            }
+            if (fdalpha == 0) {
+                h.splice(h.indexOf("Duck peek assist"));
+            }
+        }
+        if (UI.GetValue(["Misc.", "Keys", "Auto peek"])) {
+            apalpha = Math.min(apalpha + frames, 1);
+        } else {
+            apalpha = apalpha - frames;
+            if (apalpha < 0) {
+                apalpha = 0;
+            }
+            if (apalpha == 0) {
+                h.splice(h.indexOf("Auto peek"));
+            }
+        }
+        if (UI.GetValue(["Rage", "Anti Aim", "General", "Key assignment", "AA Direction inverter"])) {
+            aialpha = Math.min(aialpha + frames, 1);
+        } else {
+            aialpha = aialpha - frames;
+            if (aialpha < 0) {
+                aialpha = 0;
+            }
+            if (aialpha == 0) {
+                h.splice(h.indexOf("Anti-aim inverter"));
+            }
+        }
+        if (UI.GetValue(["Rage", "General", "General", "Key assignment", "Force safe point"])) {
+            spalpha = Math.min(spalpha + frames, 1);
+        } else {
+            spalpha = spalpha - frames;
+            if (spalpha < 0) {
+                spalpha = 0;
+            }
+            if (spalpha == 0) {
+                h.splice(h.indexOf("Safe point override"));
+            }
+        }
+        if (UI.GetValue(["Rage", "General", "General", "Key assignment", "Force body aim"])) {
+            fbalpha = Math.min(fbalpha + frames, 1);
+        } else {
+            fbalpha = fbalpha - frames;
+            if (fbalpha < 0) {
+                fbalpha = 0;
+            }
+            if (fbalpha == 0) {
+                h.splice(h.indexOf("Force body aim"));
+            }
+        }
+        if (UI.GetValue(["Rage", "Exploits", "Keys", "Double tap"])) {
+            dtalpha = Math.min(dtalpha + frames, 1);
+        } else {
+            dtalpha = dtalpha - frames;
+            if (dtalpha < 0) {
+                dtalpha = 0;
+            }
+            if (dtalpha == 0) {
+                h.splice(h.indexOf("Double tap"));
+            }
+        }
+        if (UI.GetValue(["Rage", "Exploits", "Keys", "Hide shots"])) {
+            hsalpha = Math.min(hsalpha + frames, 1);
+        } else {
+            hsalpha = hsalpha - frames;
+            if (hsalpha < 0) {
+                hsalpha = 0;
+            }
+            if (hsalpha == 0) {
+                h.splice(h.indexOf("On shot anti-aim"));
+            }
+        }
+        if (UI.GetValue(["Rage", "General", "General", "Key assignment", "Damage Override"])) {
+            doalpha = Math.min(doalpha + frames, 1);
+        } else {
+            doalpha = doalpha - frames;
+            if (doalpha < 0) {
+                doalpha = 0;
+            }
+            if (doalpha == 0) {
+                h.splice(h.indexOf("Damage Override"));
+            }
+        }
+        if (UI.GetValue(["Rage", "Anti Aim", "General", "Key assignment", "Slow walk"])) {
+            if (h.indexOf("Slow walk") == -1) {
+                h.push("Slow walk");
+            }
+        }
+        if (UI.GetValue(["Rage", "Anti Aim", "General", "Key assignment", "Fake duck"])) {
+            if (h.indexOf("Duck peek assist") == -1) {
+                h.push("Duck peek assist");
+            }
+        }
+        if (UI.GetValue(["Misc.", "Keys", "Auto peek"])) {
+            if (h.indexOf("Auto peek") == -1) {
+                h.push("Auto peek");
+            }
+        }
+        if (UI.GetValue(["Rage", "Anti Aim", "General", "Key assignment", "AA Direction inverter"])) {
+            if (h.indexOf("Anti-aim inverter") == -1) {
+                h.push("Anti-aim inverter");
+            }
+        }
+        if (UI.GetValue(["Rage", "General", "General", "Key assignment", "Force safe point"])) {
+            if (h.indexOf("Safe point override") == -1) {
+                h.push("Safe point override");
+            }
+        }
+        if (UI.GetValue(["Rage", "General", "General", "Key assignment", "Force body aim"])) {
+            if (h.indexOf("Force body aim") == -1) {
+                h.push("Force body aim");
+            }
+        }
+        if (UI.GetValue(["Rage", "Exploits", "Keys", "Double tap"])) {
+            if (h.indexOf("Double tap") == -1) {
+                h.push("Double tap");
+            }
+        }
+        if (UI.GetValue(["Rage", "Exploits", "Keys", "Hide shots"])) {
+            if (h.indexOf("On shot anti-aim") == -1) {
+                h.push("On shot anti-aim");
+            }
+        }
+        if (UI.GetValue(["Rage", "General", "General", "Key assignment", "Damage Override"])) {
+            if (h.indexOf("Damage Override") == -1) {
+                h.push("Damage Override");
+            }
+        }
+        if (h.length > 0) {
+            alpha = Math.min(alpha + frames, 1);
+        } else {
+            alpha = alpha - frames;
+            if (alpha < 0) {
+                alpha = 0;
+            }
+        }
+        for (i = 0; i < h.length; i++) {
+            if (Render.TextSize(h[i], font)[0] > maxwidth) {
+                maxwidth = Render.TextSize(h[i], font)[0];
+            }
+        }
+        if (maxwidth == 0) {
+            maxwidth = 50;
+        }
+        width = width + maxwidth;
+        if (alpha > 0) {
+            if (Gradient) {
+                Render.GradientRect(x, y + 3, width, 2, 1, [rgb.r, rgb.g, rgb.b, alpha * 255], [rgb.g, rgb.b, rgb.r, alpha * 255]);
+            } else {
+                Render.FilledRect(x, y + 3, width, 2, [colorhotkeys[0], colorhotkeys[1], colorhotkeys[2], alpha * 255]);
+            }
+            Render.FilledRect(x, y + 5, width, 18, [17, 17, 17, 150]);
+            Render.String(x + width / 2 - Render.TextSize("keybinds", font)[0] / 2 + 2, y + 9, 0, "keybinds", [0, 0, 0, alpha * 255 / 1.3], font);
+            Render.String(x + width / 2 - Render.TextSize("keybinds", font)[0] / 2 + 1, y + 8, 0, "keybinds", [255, 255, 255, alpha * 255], font);
+            for (i = 0; i < h.length; i++) {
+                switch (h[i]) {
+                case "Slow walk":
+                    Render.FilledRect(x, y + 23 + 18 * i, width, 18, [17, 17, 17, Math.min(colorhotkeys[3], Math.min(swalpha * 255, colorhotkeys[3]))]);
+                    Render.String(x + 3, y + 26 + 18 * i, 0, h[i], [0, 0, 0, swalpha * 255 / 1.3], font);
+                    Render.String(x + 2, y + 26 + 18 * i, 0, h[i], [255, 255, 255, swalpha * 255], font);
+                    Render.String(x - 3 + width - Render.TextSize("[holding]", font)[0], y + 26 + 18 * i, 0, "[holding]", [0, 0, 0, swalpha * 255 / 1.3], font);
+                    Render.String(x - 2 + width - Render.TextSize("[holding]", font)[0], y + 26 + 18 * i, 0, "[holding]", [255, 255, 255, swalpha * 255], font);
+                    break;
+                case "Duck peek assist":
+                    Render.FilledRect(x, y + 23 + 18 * i, width, 18, [17, 17, 17, Math.min(colorhotkeys[3], Math.min(fdalpha * 255, colorhotkeys[3]))]);
+                    Render.String(x + 3, y + 26 + 18 * i, 0, h[i], [0, 0, 0, fdalpha * 255 / 1.3], font);
+                    Render.String(x + 2, y + 26 + 18 * i, 0, h[i], [255, 255, 255, fdalpha * 255], font);
+                    Render.String(x - 3 + width - Render.TextSize("[holding]", font)[0], y + 26 + 18 * i, 0, "[holding]", [0, 0, 0, fdalpha * 255 / 1.3], font);
+                    Render.String(x - 2 + width - Render.TextSize("[holding]", font)[0], y + 26 + 18 * i, 0, "[holding]", [255, 255, 255, fdalpha * 255], font);
+                    break;
+                case "Auto peek":
+                    Render.FilledRect(x, y + 23 + 18 * i, width, 18, [17, 17, 17, Math.min(colorhotkeys[3], Math.min(apalpha * 255, colorhotkeys[3]))]);
+                    Render.String(x + 3, y + 26 + 18 * i, 0, h[i], [0, 0, 0, apalpha * 255 / 1.3], font);
+                    Render.String(x + 2, y + 26 + 18 * i, 0, h[i], [255, 255, 255, apalpha * 255], font);
+                    Render.String(x - 3 + width - Render.TextSize("[holding]", font)[0], y + 26 + 18 * i, 0, "[holding]", [0, 0, 0, apalpha * 255 / 1.3], font);
+                    Render.String(x - 2 + width - Render.TextSize("[holding]", font)[0], y + 26 + 18 * i, 0, "[holding]", [255, 255, 255, apalpha * 255], font);
+                    break;
+                case "Anti-aim inverter":
+                    Render.FilledRect(x, y + 23 + 18 * i, width, 18, [17, 17, 17, Math.min(colorhotkeys[3], Math.min(aialpha * 255, colorhotkeys[3]))]);
+                    Render.String(x + 3, y + 26 + 18 * i, 0, h[i], [0, 0, 0, aialpha * 255 / 1.3], font);
+                    Render.String(x + 2, y + 26 + 18 * i, 0, h[i], [255, 255, 255, aialpha * 255], font);
+                    Render.String(x - 3 + width - Render.TextSize("[toggled]", font)[0], y + 26 + 18 * i, 0, "[toggled]", [0, 0, 0, aialpha * 255 / 1.3], font);
+                    Render.String(x - 2 + width - Render.TextSize("[toggled]", font)[0], y + 26 + 18 * i, 0, "[toggled]", [255, 255, 255, aialpha * 255], font);
+                    break;
+                case "Safe point override":
+                    Render.FilledRect(x, y + 23 + 18 * i, width, 18, [17, 17, 17, Math.min(colorhotkeys[3], Math.min(spalpha * 255, colorhotkeys[3]))]);
+                    Render.String(x + 3, y + 26 + 18 * i, 0, h[i], [0, 0, 0, spalpha * 255 / 1.3], font);
+                    Render.String(x + 2, y + 26 + 18 * i, 0, h[i], [255, 255, 255, spalpha * 255], font);
+                    Render.String(x - 3 + width - Render.TextSize("[toggled]", font)[0], y + 26 + 18 * i, 0, "[toggled]", [0, 0, 0, spalpha * 255 / 1.3], font);
+                    Render.String(x - 2 + width - Render.TextSize("[toggled]", font)[0], y + 26 + 18 * i, 0, "[toggled]", [255, 255, 255, spalpha * 255], font);
+                    break;
+                case "Force body aim":
+                    Render.FilledRect(x, y + 23 + 18 * i, width, 18, [17, 17, 17, Math.min(colorhotkeys[3], Math.min(fbalpha * 255, colorhotkeys[3]))]);
+                    Render.String(x + 3, y + 26 + 18 * i, 0, h[i], [0, 0, 0, fbalpha * 255 / 1.3], font);
+                    Render.String(x + 2, y + 26 + 18 * i, 0, h[i], [255, 255, 255, fbalpha * 255], font);
+                    Render.String(x - 3 + width - Render.TextSize("[holding]", font)[0], y + 26 + 18 * i, 0, "[holding]", [0, 0, 0, fbalpha * 255 / 1.3], font);
+                    Render.String(x - 2 + width - Render.TextSize("[holding]", font)[0], y + 26 + 18 * i, 0, "[holding]", [255, 255, 255, fbalpha * 255], font);
+                    break;
+                case "Double tap":
+                    Render.FilledRect(x, y + 23 + 18 * i, width, 18, [17, 17, 17, Math.min(colorhotkeys[3], Math.min(dtalpha * 255, colorhotkeys[3]))]);
+                    Render.String(x + 3, y + 26 + 18 * i, 0, h[i], [0, 0, 0, dtalpha * 255 / 1.3], font);
+                    Render.String(x + 2, y + 26 + 18 * i, 0, h[i], [255, 255, 255, dtalpha * 255], font);
+                    Render.String(x - 3 + width - Render.TextSize("[toggled]", font)[0], y + 26 + 18 * i, 0, "[toggled]", [0, 0, 0, dtalpha * 255 / 1.3], font);
+                    Render.String(x - 2 + width - Render.TextSize("[toggled]", font)[0], y + 26 + 18 * i, 0, "[toggled]", [255, 255, 255, dtalpha * 255], font);
+                    break;
+                case "On shot anti-aim":
+                    Render.FilledRect(x, y + 23 + 18 * i, width, 18, [17, 17, 17, Math.min(colorhotkeys[3], Math.min(hsalpha * 255, colorhotkeys[3]))]);
+                    Render.String(x + 3, y + 26 + 18 * i, 0, h[i], [0, 0, 0, hsalpha * 255 / 1.3], font);
+                    Render.String(x + 2, y + 26 + 18 * i, 0, h[i], [255, 255, 255, hsalpha * 255], font);
+                    Render.FilledRect(x, y + 23 + 18 * i, width, 18, [17, 17, 17, Math.min(colorhotkeys[3], Math.min(doalpha * 255, colorhotkeys[3]))]);
+                    Render.String(x + 3, y + 26 + 18 * i, 0, h[i], [0, 0, 0, doalpha * 255 / 1.3], font);
+                    Render.String(x + 2, y + 26 + 18 * i, 0, h[i], [255, 255, 255, doalpha * 255], font);
+                    Render.String(x - 3 + width - Render.TextSize("[toggled]", font)[0], y + 26 + 18 * i, 0, "[toggled]", [0, 0, 0, doalpha * 255 / 1.3], font);
+                    Render.String(x - 2 + width - Render.TextSize("[toggled]", font)[0], y + 26 + 18 * i, 0, "[toggled]", [255, 255, 255, doalpha * 255], font);
+                    break;
+                case "Damage Override":
+                    Render.FilledRect(x, y + 23 + 18 * i, width, 18, [17, 17, 17, Math.min(colorhotkeys[3], Math.min(doalpha * 255, colorhotkeys[3]))]);
+                    Render.String(x + 3, y + 26 + 18 * i, 0, h[i], [0, 0, 0, doalpha * 255 / 1.3], font);
+                    Render.String(x + 2, y + 26 + 18 * i, 0, h[i], [255, 255, 255, doalpha * 255], font);
+                    Render.FilledRect(x, y + 23 + 18 * i, width, 18, [17, 17, 17, Math.min(colorhotkeys[3], Math.min(doalpha * 255, colorhotkeys[3]))]);
+                    Render.String(x + 3, y + 26 + 18 * i, 0, h[i], [0, 0, 0, doalpha * 255 / 1.3], font);
+                    Render.String(x + 2, y + 26 + 18 * i, 0, h[i], [255, 255, 255, doalpha * 255], font);
+                    Render.String(x - 3 + width - Render.TextSize("[toggled]", font)[0], y + 26 + 18 * i, 0, "[toggled]", [0, 0, 0, doalpha * 255 / 1.3], font);
+                    Render.String(x - 2 + width - Render.TextSize("[toggled]", font)[0], y + 26 + 18 * i, 0, "[toggled]", [255, 255, 255, doalpha * 255], font);
+                    break;
+                default:
+                    ;
+                }
+            }
+        }
+        if (Global.IsKeyPressed(1) && UI.IsMenuOpen()) {
+            const mouse_pos = Global.GetCursorPosition();
+            if (in_bounds(mouse_pos, x, y, x + width, y + 30)) {
+                UI.SetValue(["Config", "Crack-yaw Misc", "Crack-yaw Misc", "Hotkeys x"], mouse_pos[0] - width / 2);
+                UI.SetValue(["Config", "Crack-yaw Misc", "Crack-yaw Misc", "Hotkeys y"], mouse_pos[1] - 20);
+            }
+        }
+    }
+}
+Global.RegisterCallback("Draw", "main_hotkeys");
+const window_x = UI.AddSliderInt(["Config", "Crack-yaw Misc", "Crack-yaw Misc"], "Spec x", 0, Global.GetScreenSize()[0]);
+const window_y = UI.AddSliderInt(["Config", "Crack-yaw Misc", "Crack-yaw Misc"], "Spec y", 0, Global.GetScreenSize()[1]);
+var colorspec = UI.GetColor(["Config", "Crack-yaw Colors", "Crack-yaw Colors", "Spec"]);
+if (colorspec[3] == 0) {
+    UI.SetColor(["Config", "Crack-yaw Colors", "Crack-yaw Colors", "Spec"], [96, 255, 193, 3]);
+}
+var alpha = 0;
+var salpha = 0;
+var maxwidth = 0;
+var swalpha = 0;
+var fdalpha = 0;
+var apalpha = 0;
+var aialpha = 0;
+var spalpha = 0;
+var fbalpha = 0;
+var dtalpha = 0;
+var hsalpha = 0;
+var doalpha = 0;
+var username = Cheat.GetUsername();
+var textalpha = 0;
+var h = new Array;
+
+function HSVtoRGB(h, s, v) {
+    var r, g, b, i, f, p, q, t;
+    if (arguments.length === 1) {
+        s = h.s, v = h.v, h = h.h;
+    }
+    i = Math.floor(h * 6);
+    f = h * 6 - i;
+    p = v * (1 - s);
+    q = v * (1 - f * s);
+    t = v * (1 - (1 - f) * s);
+    switch (i % 6) {
+    case 0:
+        r = v, g = t, b = p;
+        break;
+    case 1:
+        r = q, g = v, b = p;
+        break;
+    case 2:
+        r = p, g = v, b = t;
+        break;
+    case 3:
+        r = p, g = q, b = v;
+        break;
+    case 4:
+        r = t, g = p, b = v;
+        break;
+    case 5:
+        r = v, g = p, b = q;
+        break;
+    default:
+        ;
+    }
+    return {
+        r: Math.round(r * 255),
+        g: Math.round(g * 255),
+        b: Math.round(b * 255)
+    };
+}
+
+function get_spectators() {
+    var specs = [];
+    const players = Entity.GetPlayers();
+    for (i = 0; i < players.length; i++) {
+        const cur = players[i];
+        if (Entity.GetProp(cur, "CBasePlayer", "m_hObserverTarget") != "m_hObserverTarget") {
+            const obs = Entity.GetProp(cur, "CBasePlayer", "m_hObserverTarget");
+            if (obs === Entity.GetLocalPlayer()) {
+                const name = Entity.GetName(cur);
+                specs.push(name);
+            }
+        }
+    }
+    return specs;
+}
+
+function main_spec() {
+    if (UI.GetValue(["Config", "Crack-yaw", "Crack-yaw", "spectator list"])) {
+        if (!World.GetServerString()) {
+            return;
+        }
+        const x = UI.GetValue(["Config", "Crack-yaw Misc", "Crack-yaw Misc", "Spec x"]),
+            y = UI.GetValue(["Config", "Crack-yaw Misc", "Crack-yaw Misc", "Spec y"]);
+        const text = get_spectators();
+        colorspec = UI.GetColor(["Config", "Crack-yaw Colors", "Crack-yaw Colors", "Spec"]);
+        var font = Render.GetFont("Verdana.ttf", 9, true);
+        var frames = 8 * Globals.Frametime();
+        var width2 = 84;
+        var maxwidth2 = 0;
+        var Gradient = UI.GetValue(["Config", "Crack-yaw Colors", "Crack-yaw Colors", "Spec Gradient"]);
+        var rgb = HSVtoRGB(Global.Tickcount() % 350 / 350, 1, 1);
+        if (text.length > 0) {
+            salpha = Math.min(salpha + frames, 1);
+        } else {
+            salpha = salpha - frames;
+            if (salpha < 0) {
+                salpha = 0;
+            }
+        }
+        for (i = 0; i < text.length; i++) {
+            if (Render.TextSize(text[i], font)[0] > maxwidth2) {
+                maxwidth2 = Render.TextSize(text[i], font)[0];
+            }
+        }
+        if (maxwidth2 == 0) {
+            maxwidth2 = 50;
+        }
+        width2 = width2 + maxwidth2;
+        if (Gradient) {
+            Render.GradientRect(x, y + 3, width2, 2, 1, [rgb.r, rgb.g, rgb.b, salpha * 255], [rgb.g, rgb.b, rgb.r, salpha * 255]);
+        } else {
+            Render.FilledRect(x, y + 3, width2, 2, [colorspec[0], colorspec[1], colorspec[2], salpha * 255]);
+        }
+        Render.FilledRect(x, y + 5, width2, 18, [17, 17, 17, salpha * 255]);
+        Render.String(x + width2 / 2 - Render.TextSize("spectators", font)[0] / 2 + 2, y + 9, 0, "spectators", [0, 0, 0, salpha * 255 / 1.3], font);
+        Render.String(x + width2 / 2 - Render.TextSize("spectators", font)[0] / 2 + 1, y + 8, 0, "spectators", [255, 255, 255, salpha * 255], font);
+        for (i = 0; i < text.length; i++) {
+            Render.FilledRect(x + 72 + width2 - Render.TextSize(toString(text), font)[0], y + 24 + 15 * i, 12, 12, [20, 20, 20, 255]);
+            Render.String(x + 77 + width2 - Render.TextSize(toString(text), font)[0], y + 24 + 15 * i, 1, "?", [255, 255, 255, 196.15384615384616], font);
+            Render.String(x + Render.TextSize(text[i], font)[0] / 2, y + 24 + 15 * i, 1, text[i], [0, 0, 0, 196.15384615384616], font);
+            Render.String(x + Render.TextSize(text[i], font)[0] / 2, y + 24 + 15 * i, 1, text[i], [255, 255, 255, 255], font);
+        }
+        if (Global.IsKeyPressed(1) && UI.IsMenuOpen()) {
+            const mouse_pos = Global.GetCursorPosition();
+            if (in_bounds(mouse_pos, x, y, x + width2, y + 30)) {
+                UI.SetValue(["Config", "Crack-yaw Misc", "Crack-yaw Misc", "Spec x"], mouse_pos[0] - width2 / 2);
+                UI.SetValue(["Config", "Crack-yaw Misc", "Crack-yaw Misc", "Spec y"], mouse_pos[1] - 20);
+            }
+        }
+    }
+}
+Global.RegisterCallback("Draw", "main_spec");
+var today = new Date;
+var datetime = today.getHours() + ":" + today.getMinutes() + ":" + (today.getSeconds() < 10 ? "0" + today.getSeconds() : today.getSeconds());
+var lasttime = 0;
+var time = 4;
+
+function onRender() {
+    var tag = UI.GetValue(["Config", "Crack-yaw Misc", "Crack-yaw Misc", "clantag"]);
+    var realtime = Global.Tickrate();
+    if (time != lasttime) {
+        if (tag == 0) {
+            Local.SetClanTag("");
+        }
+        if (tag == 1) {
+            switch (time % 21) {
+            case 1:
+                Local.SetClanTag("       s");
+                break;
+            case 2:
+                Local.SetClanTag("      sy");
+                break;
+            case 3:
+                Local.SetClanTag("     syn");
+                break;
+            case 4:
+                Local.SetClanTag("    Crack");
+                break;
+            case 5:
+                Local.SetClanTag("   Crack-");
+                break;
+            case 6:
+                Local.SetClanTag("  Crack-y");
+                break;
+            case 7:
+                Local.SetClanTag(" Crack-ya");
+                break;
+            case 8:
+                Local.SetClanTag("Crack-yaw");
+                break;
+            case 9:
+                Local.SetClanTag("Crack-yaw");
+                break;
+            case 10:
+                Local.SetClanTag("Crack-yaw");
+                break;
+            case 11:
+                Local.SetClanTag("Crack-yaw");
+                break;
+            case 12:
+                Local.SetClanTag("Crack-yaw");
+                break;
+            case 13:
+                Local.SetClanTag("Crack-yaw");
+                break;
+            case 14:
+                Local.SetClanTag("Crack-yaw");
+                break;
+            case 15:
+                Local.SetClanTag("Crack-ya ");
+                break;
+            case 16:
+                Local.SetClanTag("Crack-y  ");
+                break;
+            case 17:
+                Local.SetClanTag("Crack-   ");
+                break;
+            case 18:
+                Local.SetClanTag("Crack    ");
+                break;
+            case 19:
+                Local.SetClanTag("syn     ");
+                break;
+            case 20:
+                Local.SetClanTag("sy      ");
+                break;
+            case 21:
+                Local.SetClanTag("s       ");
+                break;
+            default:
+                ;
+            }
+        }
+    }
+    lasttime = time;
+}
+Cheat.RegisterCallback("Draw", "onRender");
+
+function in_bounds(vec, x, y, x2, y2) {
+    return vec[0] > x && vec[1] > y && vec[0] < x2 && vec[1] < y2;
+}
+
+function draw_arc(x, y, radius, start_angle, percent, thickness, color) {
+    var precision = 2 * Math.PI / 30;
+    var step = Math.PI / 180;
+    var inner = radius - thickness;
+    var end_angle = (start_angle + percent) * step;
+    var start_angle = start_angle * Math.PI / 180;
+    for (; radius > inner; --radius) {
+        for (var angle = start_angle; angle < end_angle; angle += precision) {
+            var cx = Math.round(x + radius * Math.cos(angle));
+            var cy = Math.round(y + radius * Math.sin(angle));
+            var cx2 = Math.round(x + radius * Math.cos(angle + precision));
+            var cy2 = Math.round(y + radius * Math.sin(angle + precision));
+            Render.Line(cx, cy, cx2, cy2, color);
+        }
+    }
+}
+
+function main_aa() {
+    if (!World.GetServerString()) {
+        return;
+    }
+    var isDoubletap = UI.GetValue(["Rage", "Exploits", "Keys", "Double tap"]);
+    var isCrackWalk = UI.GetValue(["Rage", "Anti Aim", "General", "Key assignment", "Slow walk"]);
+    var charge = Exploit.GetCharge();
+    var font = Render.GetFont("Verdana.ttf", 10, true);
+    var font1 = Render.GetFont("Verdana.ttf", 11, true);
+    var RealYaw = Local.GetRealYaw();
+    var FakeYaw = Local.GetFakeYaw();
+    var delta = Math.min(Math.abs(RealYaw - FakeYaw) / 2, 60).toFixed(1);
+    var text = " FAKE (" + delta.toString() + " )";
+    var w = Render.TextSize(text, font)[0] + 8;
+    if (UI.GetValue(["Config", "Crack-yaw", "Crack-yaw", "indicators"])) {
+        if (isCrackWalk >= 1) {
+            Render.String(963, 574, 0, "Crack WALK", [0, 0, 0, 180], font1);
+            Render.String(962, 573, 0, "Crack WALK", [89, 119, 239, 255], font1);
+        }
+        if (isCrackWalk < 1) {
+            Render.String(963, 574, 0, "Crack YAW", [0, 0, 0, 180], font1);
+            Render.String(962, 573, 0, "Crack YAW", [89, 119, 239, 255], font1);
+        }
+        Render.String(959, 586, 0, text, [0, 0, 0, 180], font);
+        Render.String(958, 585, 0, text, [255, 255, 255, 255], font);
+        Render.Circle(1018 - w + Render.TextSize("FAKE (" + delta.toString(), font)[0], 605, 0, [89, 119, 239, 255]);
+        draw_arc(1115 - w, 591, 5, 0, delta * 6, 2, [89, 119, 239, 255]);
+        if (isDoubletap) {
+            if (charge >= 1) {
+                Render.String(963, 597, 0, "DT", [0, 0, 0, 255], font);
+                Render.String(962, 596, 0, "DT", [89, 119, 239, 255], font);
+            }
+            if (charge < 1) {
+                Render.String(963, 597, 0, "DT", [0, 0, 0, 255], font);
+                Render.String(962, 596, 0, "DT", [255, 0, 0, 255], font);
+            }
+        }
+    }
+}
+Global.RegisterCallback("Draw", "main_aa");
+
+function lowdelta() {
+    if (UI.GetValue(["Config", "Crack-yaw [AA]", "Crack-yaw [AA]", "Crack-walk"])) {
+        var inverted = UI.GetValue(["Rage", "Anti Aim", "General", "Key assignment", "AA Direction inverter"], "AA Inverter");
+        if (UI.GetValue(["Rage", "Anti Aim", "General", "Key assignment", "Slow walk"]) && !inverted) {
+            AntiAim.SetOverride(1);
+            AntiAim.SetFakeOffset(0);
+            AntiAim.SetRealOffset(-17);
+        } else if (UI.GetValue(["Rage", "Anti Aim", "General", "Key assignment", "Slow walk"]) && inverted) {
+            AntiAim.SetOverride(1);
+            AntiAim.SetFakeOffset(0);
+            AntiAim.SetRealOffset(17);
+        } else {
+            AntiAim.SetOverride(0);
+        }
+    }
+}
+Cheat.RegisterCallback("CreateMove", "lowdelta");
+var weaponTabNames = {
+    'usp s': "USP",
+    'glock 18': "Glock",
+    'dual berettas': "Dualies",
+    'r8 revolver': "Revolver",
+    'desert eagle': "Deagle",
+    p250: "P250",
+    'tec 9': "Tec-9",
+    mp9: "MP9",
+    'mac 10': "Mac10",
+    'pp bizon': "PP-Bizon",
+    'ump 45': "UMP45",
+    'ak 47': "AK47",
+    'sg 553': "SG553",
+    aug: "AUG",
+    'm4a1 s': "M4A1-S",
+    m4a4: "M4A4",
+    'ssg 08': "SSG08",
+    awp: "AWP",
+    g3sg1: "G3SG1",
+    'scar 20': "SCAR20",
+    xm1014: "XM1014",
+    'mag 7': "MAG7",
+    m249: "M249",
+    negev: "Negev",
+    p2000: "P2000",
+    famas: "FAMAS",
+    'five seven': "Five Seven",
+    mp7: "MP7",
+    'ump 45': "UMP45",
+    p90: "P90",
+    'cz75 auto': "CZ-75",
+    'mp5 sd': "MP5",
+    'galil ar': "GALIL",
+    'sawed off': "Sawed off",
+    nova: "Nova"
+};
+
+function updateDamageValues() {
+    if (!Entity.IsAlive(Entity.GetLocalPlayer())) {
+        return;
+    }
+    var weaponName = Entity.GetName(Entity.GetWeapon(Entity.GetLocalPlayer()));
+    if (!weaponTabNames.hasOwnProperty(weaponName)) {
+        return;
+    }
+    var isOverride = UI.GetValue(["Rage", "General", "General", "Key assignment", "Damage Override"]) ? true : false;
+    if (isOverride) {
+        var target = Entity.GetEnemies();
+        for (var i in target) {
+            if (UI.GetValue(["Rage", "Target", weaponTabNames[weaponName], "Damage Override"]) != 0) {
+                Ragebot.ForceTargetMinimumDamage(target[i], UI.GetValue(["Rage", "Target", weaponTabNames[weaponName], "Damage Override"]));
+            } else {
+                Ragebot.ForceTargetMinimumDamage(target[i], UI.GetValue(["Rage", "Target", "General", "Damage Override"]));
+            }
+        }
+    }
+}
+
+function main1() {
+    UI.AddSliderInt(["Rage", "Target", "General"], "Damage Override", 0, 130);
+    for (var name in weaponTabNames) {
+        UI.AddSliderInt(["Rage", "Target", weaponTabNames[name]], "Damage Override", 0, 130);
+    }
+    UI.AddHotkey(["Rage", "General", "General", "Key assignment"], "Damage Override", "Damage Override");
+    Cheat.RegisterCallback("CreateMove", "updateDamageValues");
+}
+main1();
+if (UI.GetValue(["Config", "Crack-yaw", "Crack-yaw", "Faster DT"])) {
+    var time, delay, fillbar, shotsfired;
+
+    function can_shift_shot(ticks_to_shift) {
+        var me = Entity.GetLocalPlayer();
+        var wpn = Entity.GetWeapon(me);
+        if (me == null || wpn == null) {
+            return false;
+        }
+        var tickbase = Entity.GetProp(me, "CCSPlayer", "m_nTickBase");
+        var curtime = Globals.TickInterval() * (tickbase - ticks_to_shift);
+        if (curtime < Entity.GetProp(me, "CCSPlayer", "m_flNextAttack")) {
+            return false;
+        }
+        if (curtime < Entity.GetProp(wpn, "CBaseCombatWeapon", "m_flNextPrimaryAttack")) {
+            return false;
+        }
+        return true;
+    }
+
+    function _TBC_CREATE_MOVE() {
+        var is_charged = Exploit.GetCharge();
+        Exploit[(is_charged != 1 ? "Enable" : "Disable") + "Recharge"]();
+        if (can_shift_shot(17) && is_charged != 1) {
+            Exploit.DisableRecharge();
+            Exploit.Recharge();
+        }
+        Exploit.OverrideTolerance(0);
+        Exploit.OverrideShift(17);
+    }
+
+    function _TBC_UNLOAD() {
+        Exploit.EnableRecharge();
+    }
+}
+Cheat.RegisterCallback("CreateMove", "_TBC_CREATE_MOVE");
+Cheat.RegisterCallback("Unload", "_TBC_UNLOAD");
+var BreakLeg = true;
+var Loop = 1;
+var Loop2 = 1;
+
+function legs() {
+    if (UI.GetValue(["Config", "Crack-yaw [AA]", "Crack-yaw [AA]", "leg fucker"])) {
+        var Amount = 0;
+        if (BreakLeg == true) {
+            if (Loop2 > Amount) {
+                UI.SetValue(["Misc.", "Movement", "Leg movement"], 1);
+                UI.SetValue(["Rage", "Anti Aim", "Jitter move"], 1);
+                Loop2 = 0;
+                BreakLeg = false;
+            }
+        } else if (BreakLeg == false) {
+            if (Loop2 > Amount) {
+                UI.SetValue(["Misc.", "Movement", "Leg movement"], 2);
+                UI.SetValue(["Rage", "Anti Aim", "Jitter move"], 0);
+                Loop2 = 0;
+                BreakLeg = true;
+            }
+        }
+        Loop2 = Loop2 + 1;
+    }
+}
+Cheat.RegisterCallback("Draw", "legs");
+var hitboxes = ["generic", "head", "chest", "stomach", "left arm", "right arm", "left leg", "right leg", "?"];
+var shots = 0;
+var predicthc = 0;
+var safety = 0;
+var hitboxName = "";
+var choked = 0;
+var exploit = 0;
+var logs = [];
+var logsct = [];
+var logsalpha = [];
+
+function getHitboxName(index) {
+    switch (index) {
+    case 0:
+        hitboxName = "head";
+        break;
+    case 1:
+        hitboxName = "head";
+        break;
+    case 2:
+        hitboxName = "stomach";
+        break;
+    case 3:
+        hitboxName = "stomach";
+        break;
+    case 4:
+        hitboxName = "stomach";
+        break;
+    case 5:
+        hitboxName = "chest";
+        break;
+    case 6:
+        hitboxName = "chest";
+        break;
+    case 7:
+        hitboxName = "left leg";
+        break;
+    case 8:
+        hitboxName = "right leg";
+        break;
+    case 9:
+        hitboxName = "left leg";
+        break;
+    case 10:
+        hitboxName = "right leg";
+        break;
+    case 11:
+        hitboxName = "left leg";
+        break;
+    case 12:
+        hitboxName = "right leg";
+        break;
+    case 13:
+        hitboxName = "left arm";
+        break;
+    case 14:
+        hitboxName = "right arm";
+        break;
+    case 15:
+        hitboxName = "left arm";
+        break;
+    case 16:
+        hitboxName = "left arm";
+        break;
+    case 17:
+        hitboxName = "right arm";
+        break;
+    case 18:
+        hitboxName = "right arm";
+        break;
+    default:
+        hitboxName = "body";
+    }
+    return hitboxName;
+}
+
+function HitgroupName(index) {
+    return hitboxes[index] || "body";
+}
+var target = 0;
+var shots_fired = 0;
+var hits = 0;
+var lastUpdate = 0;
+var logged = false;
+
+function ragebot_fire() {
+    predicthc = Event.GetInt("hitchance");
+    safety = Event.GetInt("safepoint");
+    hitboxName = getHitboxName(Event.GetInt("hitbox"));
+    exploit = (Event.GetInt("exploit") + 1).toString();
+    target = Event.GetInt("target_index");
+    shots_fired++;
+    logged = false;
+    lastUpdate = Globals.Curtime();
+}
+
+function hitlog() {
+    var hit = Entity.GetEntityFromUserID(Event.GetInt("userid"));
+    var attacker = Entity.GetEntityFromUserID(Event.GetInt("attacker"));
+    if (attacker == Entity.GetLocalPlayer() && hit == target) {
+        hits++;
+    }
+    var hittype = "Hit ";
+    me = Entity.GetLocalPlayer();
+    hitbox = Event.GetInt("hitgroup");
+    target_damage = Event.GetInt("dmg_health");
+    target_health = Event.GetInt("health");
+    victim = Event.GetInt("userid");
+    attacker = Event.GetInt("attacker");
+    weapon = Event.GetString("weapon");
+    victimIndex = Entity.GetEntityFromUserID(victim);
+    attackerIndex = Entity.GetEntityFromUserID(attacker);
+    name = Entity.GetName(victimIndex);
+    var simtime = Globals.Tickcount() % 17;
+    var flags = "";
+    if (exploit == 2) {
+        flags += "T";
+    }
+    flags += "B";
+    if (hitbox == 1) {
+        flags += "H";
+    }
+    if (safety == 1) {
+        safety = "true";
+    } else {
+        safety = "false";
+    }
+    if (weapon == "hegrenade") {
+        hittype = "Naded ";
+    } else if (weapon == "inferno") {
+        hittype = "Burned ";
+    } else if (weapon == "knife") {
+        hittype = "Knifed ";
+    }
+    if (me == attackerIndex && me != victimIndex) {
+        Cheat.PrintColor([177, 252, 3, 1], "[Crack-yaw] ");
+        if (hittype == "Hit ") {
+            Cheat.Print("[" + shots.toString() + "] " + hittype + name + "'s " + HitgroupName(hitbox) + " for " + target_damage.toString() + " (" + target_health.toString() + " remaining) aimed=" + hitboxName + "(" + predicthc.toString() + "%%) safety=" + safety + " (" + flags + ") (" + simtime + ":" + exploit + ")\n");
+            logs.push("[" + shots.toString() + "] " + hittype + name + "'s " + HitgroupName(hitbox) + " for " + target_damage.toString() + " (" + target_health.toString() + " remaining) aimed=" + hitboxName + "(" + predicthc.toString() + "%%) safety=" + safety + " (" + flags + ") (" + simtime + ":" + exploit + ")");
+        } else {
+            Cheat.Print("[" + shots.toString() + "] " + hittype + name + "'s " + HitgroupName(hitbox) + " for " + target_damage.toString() + " (" + target_health.toString() + " remaining) \n");
+            logs.push("[" + shots.toString() + "] " + hittype + name + "'s " + HitgroupName(hitbox) + " for " + target_damage.toString() + " (" + target_health.toString() + " remaining)");
+        }
+        logsct.push(Globals.Curtime());
+        logsalpha.push(255);
+    }
+    if (shots == 99) {
+        shots = 0;
+    } else {
+        shots++;
+    }
+}
+
+function removelogs() {
+    if (logs.length > 6) {
+        logs.shift();
+        logsct.shift();
+        logsalpha.shift();
+    }
+    if (logsct[0] + 6.5 < Globals.Curtime()) {
+        logsalpha[0] -= Globals.Frametime() * 600;
+        if (logsalpha[0] < 0) {
+            logs.shift();
+            logsct.shift();
+            logsalpha.shift();
+        }
+    }
+}
+
+function onDraw() {
+    if (!World.GetServerString()) {
+        return;
+    }
+    var font = Render.GetFont("lucon.ttf", 12, true);
+    for (i = 0; i < logs.length; i++) {
+        Render.String(4, 4 + 13 * i, 0, logs[i], [0, 0, 0, logsalpha[i]], font);
+        Render.String(3, 3 + 13 * i, 0, logs[i], [255, 255, 255, logsalpha[i]], font);
+    }
+    if (shots_fired > hits && Globals.Curtime() - lastUpdate > 0.33) {
+        if (Globals.Curtime() - lastUpdate > 1) {
+            shots_fired = 0;
+            hits = 0;
+        }
+        if (!logged) {
+            var simtime = Globals.Tickcount() % 16;
+            logged = true;
+            var issafe = "true";
+            var reason = "bad resolve";
+            if (safety == 0) {
+                issafe = "false";
+            }
+            if (Entity.IsAlive(target) == false) {
+                reason = "death";
+            }
+            if (Entity.IsAlive(Entity.GetLocalPlayer()) == false) {
+                reason = "unregistred";
+            }
+            if (safety == true && predicthc < 76) {
+                reason = "spread";
+            }
+            if (safety == true && predicthc > 76) {
+                reason = "prediction error";
+            }
+            var flags = "";
+            if (exploit == 2) {
+                flags += "T";
+            }
+            flags += "B";
+            Cheat.PrintColor([177, 252, 3, 1], "[Crack-yaw] ");
+            Cheat.Print("[" + shots.toString() + "] " + "Missed " + Entity.GetName(target) + "'s " + hitboxName + "(" + predicthc.toString() + "%) due to " + reason + ", safety=" + issafe + " (" + flags + ") (" + simtime + ":" + exploit + ")\n");
+            logs.push("[" + shots.toString() + "] " + "Missed " + Entity.GetName(target) + "'s " + hitboxName + "(" + predicthc.toString() + "%) due to " + reason + ", safety=" + issafe + " (" + flags + ") (" + simtime + ":" + exploit + ")");
+            logsct.push(Globals.Curtime());
+            logsalpha.push(255);
+            if (shots == 99) {
+                shots = 0;
+            } else {
+                shots++;
+            }
+        }
+    }
+}
+Global.RegisterCallback("ragebot_fire", "ragebot_fire");
+Global.RegisterCallback("player_hurt", "hitlog");
+Global.RegisterCallback("Draw", "onDraw");
+Global.RegisterCallback("Draw", "removelogs");
+var original_aa = true;
+UI.AddHotkey(["Config", "Scripts", "JS Keybinds"], "Legit aa", "legit aa");
+
+function legit_aa() {
+    if (UI.GetValue(["Config", "Scripts", "JS Keybinds", "Legit aa"]) == true) {
+        if (original_aa) {
+            restrictions_cache = UI.GetValue(["Config", "Cheat", "General", "Restrictions"]);
+            yaw_offset_cache = UI.GetValue(["Rage", "Anti Aim", "Directions", "Yaw offset"]);
+            jitter_offset_cache = UI.GetValue(["Rage", "Anti Aim", "Directions", "Jitter offset"]);
+            pitch_cache = UI.GetValue(["Rage", "Anti Aim", "General", "Pitch mode"]);
+            original_aa = false;
+        }
+        UI.SetValue(["Config", "Cheat", "General", "Restrictions"], 0);
+        UI.SetValue(["Rage", "Anti Aim", "Directions", "Yaw offset"], 180);
+        UI.SetValue(["Rage", "Anti Aim", "Directions", "Jitter offset"], 0);
+        UI.SetValue(["Rage", "Anti Aim", "General", "Pitch mode"], 0);
+    } else {
+        if (!original_aa) {
+            UI.SetValue(["Config", "Cheat", "General", "Restrictions"], restrictions_cache);
+            UI.SetValue(["Rage", "Anti Aim", "Directions", "Yaw offset"], yaw_offset_cache);
+            UI.SetValue(["Rage", "Anti Aim", "Directions", "Jitter offset"], jitter_offset_cache);
+            UI.SetValue(["Rage", "Anti Aim", "General", "Pitch mode"], pitch_cache);
+            original_aa = true;
+        }
+    }
+}
+var old_index = -1;
+const weapons = {
+    1: 5,
+    2: 6,
+    3: 8,
+    4: 11,
+    7: 0,
+    8: 1,
+    9: 2,
+    10: 7,
+    11: 9,
+    13: 10,
+    14: 13,
+    16: 14,
+    17: 16,
+    19: 24,
+    23: 19,
+    24: 31,
+    25: 33,
+    26: 3,
+    27: 17,
+    28: 21,
+    29: 26,
+    30: 30,
+    32: 12,
+    33: 18,
+    34: 20,
+    35: 22,
+    36: 23,
+    38: 38,
+    39: 28,
+    40: 29,
+    60: 15,
+    61: 32,
+    63: 4,
+    64: 25,
+    500: 34,
+    503: 48,
+    505: 35,
+    506: 36,
+    507: 37,
+    508: 38,
+    509: 45,
+    512: 40,
+    514: 44,
+    515: 39,
+    516: 42,
+    519: 47,
+    520: 41,
+    522: 43,
+    523: 46,
+    517: 49,
+    518: 50,
+    521: 51,
+    525: 52
+};
+
+function schanger() {
+    const player = Entity.GetLocalPlayer();
+    const wpn_index = Entity.GetProp(Entity.GetWeapon(player), "CBaseAttributableItem", "m_iItemDefinitionIndex") & 65535;
+    if (wpn_index === old_index) {
+        return;
+    }
+    old_index = wpn_index;
+    if (wpn_index in weapons) {
+        const menu = wpn_index;
+        UI.SetValue(["Misc.", "Skins", "Skins", "Weapon"], menu);
+    }
+}
+Cheat.RegisterCallback("CreateMove", "schanger");
+UI.AddCheckbox(["Config", "SUBTAB_MGR", "Crack-yaw", "SHEET_MGR", "Crack-yaw"], "Jump Scout/Revolver Hitchance");
+UI.AddSliderInt(["Config", "SUBTAB_MGR", "Crack-yaw", "SHEET_MGR", "Crack-yaw"], "Hitchance", 0, 100);
+
+function AirHitchance() {
+    if (!UI.GetValue(["Config", "SUBTAB_MGR", "Crack-yaw", "SHEET_MGR", "Crack-yaw", "Jump Scout/Revolver Hitchance"])) {
+        return;
+    }
+    var weapons = Entity.GetName(Entity.GetWeapon(Entity.GetLocalPlayer()));
+    if (weapons != "ssg 08" && weapons != "r8 revolver") {
+        return;
+    }
+    var flags = Entity.GetProp(Entity.GetLocalPlayer(), "CBasePlayer", "m_fFlags");
+    if (!(flags & 1) && !(flags & 262144)) {
+        target = Ragebot.GetTarget();
+        value = UI.GetValue(["Config", "SUBTAB_MGR", "Crack-yaw", "SHEET_MGR", "Crack-yaw", "Hitchance"]);
+        Ragebot.ForceTargetHitchance(target, value);
+    }
+}
+
+function SetEnabledjumphs() {
+    if (UI.GetValue(["Config", "SUBTAB_MGR", "Crack-yaw", "SHEET_MGR", "Crack-yaw", "Jump Scout/Revolver Hitchance"])) {
+        UI.SetEnabled(["Config", "SUBTAB_MGR", "Crack-yaw", "SHEET_MGR", "Crack-yaw", "Hitchance"], 1);
+    } else {
+        UI.SetEnabled(["Config", "SUBTAB_MGR", "Crack-yaw", "SHEET_MGR", "Crack-yaw", "Hitchance"], 0);
+    }
+}
+
+function Main() {
+    Global.RegisterCallback("Draw", "SetEnabledjumphs");
+    Cheat.RegisterCallback("CreateMove", "AirHitchance");
+}
+Main();
+var hit = 0;
+var sayWhat = ["Crack-yaw > all", "get good get Crack-yaw", "Crack-yaw hitting p", "buy better cfg at shoppy.gg/@d__b", "owned by Crack-yaw", "1", "you sell?", "need help with refund?", "hhh no Crack-yaw no talk", "nice paste"];
+
+function getRandomArrayElement(arr) {
+    var min = 0;
+    var max = arr.length - 1;
+    var randIndex = Math.floor(Math.random() * (max - min)) + min;
+    return arr[randIndex];
+}
+
+function playerHurt() {
+    var local = Entity.GetLocalPlayer();
+    var attacker = Entity.GetEntityFromUserID(Event.GetInt("attacker"));
+    if (local == attacker) {
+        hit++;
+    }
+}
+
+function trashTalk() {
+    if (UI.GetValue(["Config", "Crack-yaw Misc", "Crack-yaw Misc", "Trashtalk"])) {
+        if (hit >= 1) {
+            Global.ExecuteCommand("say " + getRandomArrayElement(sayWhat));
+            hit = 0;
+        }
+    }
+}
+Cheat.RegisterCallback("player_hurt", "playerHurt");
+Global.RegisterCallback("CreateMove", "trashTalk");
+
+function idway() {
+    var getHotkey = UI.GetValue(["Config", "Scripts", "JS Keybinds", "Freestanding"]);
+    if (getHotkey) {
+        UI.SetValue(["Rage", "Anti Aim", "Directions", "Auto direction"], 1);
+        UI.SetValue(["Rage", "Anti Aim", "Directions", "At targets"], 0);
+    } else {
+        UI.SetValue(["Rage", "Anti Aim", "Directions", "Auto direction"], 0);
+        UI.SetValue(["Rage", "Anti Aim", "Directions", "At targets"], 1);
+    }
+}
+Cheat.RegisterCallback("FRAME_START", "idway");
+UI.AddSliderInt(["Config", "Crack-yaw [AA]", "Crack-yaw [AA]"], "Ideal Yaw offset", -60, 60);
+var set1 = false;
+
+function Safe_Head() {
+    var jitter_cache = UI.GetValue(["Rage", "Anti Aim", "Directions", "Jitter offset"]);
+    var yaw_cache = UI.GetValue(["Rage", "Anti Aim", "Directions", "Yaw offset"]);
+    var offset = UI.GetValue(["Config", "Crack-yaw [AA]", "Crack-yaw [AA]", "Ideal Yaw offset"]);
+    localplayer_index = Entity.GetLocalPlayer();
+    if (UI.GetValue(["Config", "Crack-yaw [AA]", "Crack-yaw [AA]", "Ideal Yaw offset"]) && UI.GetValue(["Rage", "Anti Aim", "General", "Key assignment", "Slow walk"])) {
+        UI.SetValue(["Rage", "Anti Aim", "Directions", "Jitter offset"], 0);
+        AntiAim.SetOverride(1);
+        AntiAim.SetFakeOffset(0);
+        if (UI.GetValue(["Rage", "Anti Aim", "General", "Key assignment", "AA Direction inverter"])) {
+            AntiAim.SetRealOffset(-offset);
+        } else {
+            AntiAim.SetRealOffset(offset);
+        }
+        set1 = false;
+    } else {
+        if (!set1) {
+            set1 = true;
+            UI.SetValue(["Rage", "Anti Aim", "Directions", "Jitter offset"], jitter_cache);
+            UI.SetValue(["Rage", "Anti Aim", "Directions", "Yaw offset"], yaw_cache);
+        }
+        AntiAim.SetOverride(0);
+    }
+}
+
+function setenableidealyaw() {
+    if (UI.GetValue(["Config", "Crack-yaw [AA]", "Crack-yaw [AA]", "Ideal Yaw"])) {
+        UI.SetEnabled(["Config", "Crack-yaw [AA]", "Crack-yaw [AA]", "Ideal Yaw offset"], 1);
+    } else {
+        UI.SetEnabled(["Config", "Crack-yaw [AA]", "Crack-yaw [AA]", "Ideal Yaw offset"], 0);
+    }
+}
+Global.RegisterCallback("Draw", "setenableidealyaw");
+Cheat.RegisterCallback("CreateMove", "Safe_Head");
